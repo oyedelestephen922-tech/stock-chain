@@ -1,0 +1,57 @@
+/* ── Stock Chain design tokens ─────────────────────────────────────────── */
+:root {
+  --font-display: 'Bodoni Moda', 'Didot', 'Bodoni 72', Georgia, serif;
+  --font-ui: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --gold-bright: #F6DC8E;
+  --gold-warm: #D9A93E;
+  --gold-bronze: #9A6E28;
+  --gold-champagne: #EADCB8;
+  --gold-metal: linear-gradient(100deg, #9A6E28 0%, #D9A93E 22%, #FBE7A8 42%, #D9A93E 58%, #8E6524 78%, #E9C566 100%);
+
+  --up: #57C7A0;
+  --down: #E2705F;
+
+  --radius-sharp: 2px;
+  --radius-soft: 10px;
+  --wrap: 1240px;
+  --nav-h: 76px;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+[data-theme='dark'] {
+  --bg: #08090B;
+  --bg-raised: #0F1013;
+  --bg-panel: rgba(18, 19, 23, .74);
+  --bg-inset: #0B0C0E;
+  --line: rgba(217, 169, 62, .16);
+  --line-strong: rgba(217, 169, 62, .42);
+  --text: #EEE7D6;
+  --text-dim: #A49C8A;
+  --text-faint: #7A7364;
+  --accent: #E2B54A;
+  --accent-ink: #1A1305;
+  --glow: rgba(226, 181, 74, .18);
+  --grid: rgba(217, 169, 62, .05);
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  --bg: #FAF7F0;
+  --bg-raised: #FFFFFF;
+  --bg-panel: rgba(255, 255, 255, .82);
+  --bg-inset: #F3EEE3;
+  --line: rgba(122, 88, 28, .18);
+  --line-strong: rgba(122, 88, 28, .45);
+  --text: #1E1D1A;
+  --text-dim: #5C574C;
+  --text-faint: #7E7768;
+  --accent: #8A6020;
+  --accent-ink: #FFF8E6;
+  --glow: rgba(154, 110, 40, .12);
+  --grid: rgba(122, 88, 28, .06);
+  --up: #1B8460;
+  --down: #B9412F;
+  --gold-metal: linear-gradient(100deg, #6E4C14 0%, #A87A26 25%, #CF9F3C 45%, #A87A26 60%, #6E4C14 80%, #B0832E 100%);
+  color-scheme: light;
+}
