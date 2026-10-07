@@ -39,7 +39,7 @@ export function TradePanel({ markets = [], symbol, onSymbol, demo }) {
 
   const confirm = async () => {
     setSubmitting(true); setTxError(null);
-    try { await executeTrade({ side, symbol, amount, minReceive: quote.minReceive, account: wallet.address }); }
+    try { await executeTrade({ side, symbol, amount, minReceive: quote.minReceive, account: wallet.address, provider: wallet.provider }); }
     catch (e) { setTxError(e.message); }
     finally { setSubmitting(false); }
   };

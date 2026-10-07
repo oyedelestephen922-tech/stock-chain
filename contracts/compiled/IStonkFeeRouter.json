@@ -1,0 +1,39 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "token",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "well",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "distributeFee",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "wellAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "retireAmount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": ""
+}

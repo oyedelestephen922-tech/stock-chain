@@ -1,0 +1,113 @@
+{
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "stableAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "equityAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "deployLiquidity",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getPositionAssets",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "totalValueInStable",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "harvest",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "feesCollected",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "stableAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "equityAmount",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "recipient",
+          "type": "address"
+        }
+      ],
+      "name": "pullLiquidity",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "int24",
+          "name": "newTickLower",
+          "type": "int24"
+        },
+        {
+          "internalType": "int24",
+          "name": "newTickUpper",
+          "type": "int24"
+        }
+      ],
+      "name": "rebalance",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_equityToken",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_stableToken",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_oracle",
+          "type": "address"
+        }
+      ],
+      "name": "setTokens",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": ""
+}

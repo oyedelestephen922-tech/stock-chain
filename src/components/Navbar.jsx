@@ -7,7 +7,9 @@ import { WalletButton } from './WalletButton';
 const LINKS = [
   { label: 'Markets', to: '#/markets', page: 'markets' },
   { label: 'Trade', to: '#/trade', page: 'trade' },
+  { label: 'Options', to: '#/options', page: 'options' },
   { label: 'Vaults', to: '#/vaults', page: 'vaults' },
+  { label: 'Borrow', to: '#/borrow', page: 'borrow' },
   { label: 'How it works', to: '#/#how-it-works', page: null },
   { label: 'Docs', to: '#/docs', page: 'docs' },
 ];

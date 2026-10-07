@@ -1,0 +1,126 @@
+{
+  "network": {
+    "chainId": 4663,
+    "name": "Robinhood Chain",
+    "rpcUrl": "https://rpc.mainnet.chain.robinhood.com"
+  },
+  "canonical": {
+    "usdg": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+    "weth": "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
+    "uniswapV3Factory": "0x1f7d7550b1b028f7571e69a784071f0205fd2efa",
+    "uniswapQuoterV2": "0x33e885ed0ec9bf04ecfb19341582aadcb4c8a9e7",
+    "equities": [
+      {
+        "symbol": "TSLA",
+        "name": "Tesla",
+        "address": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d"
+      },
+      {
+        "symbol": "NVDA",
+        "name": "NVIDIA",
+        "address": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC"
+      },
+      {
+        "symbol": "AAPL",
+        "name": "Apple",
+        "address": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9"
+      },
+      {
+        "symbol": "PLTR",
+        "name": "Palantir",
+        "address": "0x894E1EC2D74FFE5AEF8Dc8A9e84686acCB964F2A"
+      },
+      {
+        "symbol": "META",
+        "name": "Meta",
+        "address": "0xc0D6457C16Cc70d6790Dd43521C899C87ce02f35"
+      },
+      {
+        "symbol": "GOOGL",
+        "name": "Alphabet",
+        "address": "0x2e0847E8910a9732eB3fb1bb4b70a580ADAD4FE3"
+      },
+      {
+        "symbol": "SPY",
+        "name": "SPDR S&P 500",
+        "address": "0x117cc2133c37B721F49dE2A7a74833232B3B4C0C"
+      }
+    ]
+  },
+  "contracts": {
+    "router": "0xfcb07695d59a2ffb7a1ce780ddde079f4b6d818b",
+    "oracle": "0x2732b049aec5040037133c199c64a4ce690902b5",
+    "drawdownRetire": "0x67f0864dc2d5984f24777243a1d988f130845fc1",
+    "feeRouter": "0x1ca9a918e50fa1c09ee78cd97b5b024c19bee13b",
+    "creditLine": "0xc0c86e2ce06ef85ce3679b4ec5be34a4e80f90a0",
+    "destocks": "0xd826711de519ae96459557f19c9fa47faf727ed3",
+    "wells": {
+      "TSLA": {
+        "name": "Tesla Stonk Well",
+        "symbol": "wTSLA",
+        "address": "0xea9c6da79d361e90c705ef99451ff9debc8ec3ac",
+        "equityToken": "0x322F0929c4625eD5bAd873c95208D54E1c003b2d"
+      },
+      "NVDA": {
+        "name": "NVIDIA Stonk Well",
+        "symbol": "wNVDA",
+        "address": "0x5ec65628056feca2671f796b287edde2f8764240",
+        "equityToken": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC"
+      },
+      "AAPL": {
+        "name": "Apple Stonk Well",
+        "symbol": "wAAPL",
+        "address": "0xc9c358c799960094a7de14b24daaa59f6e3d1dd4",
+        "equityToken": "0xaF3D76f1834A1d425780943C99Ea8A608f8a93f9"
+      },
+      "PLTR": {
+        "name": "Palantir Stonk Well",
+        "symbol": "wPLTR",
+        "address": "0x5eb18fca8d6b0f04a81b60a9e1731e7b74edcf84",
+        "equityToken": "0x894E1EC2D74FFE5AEF8Dc8A9e84686acCB964F2A"
+      },
+      "META": {
+        "name": "Meta Stonk Well",
+        "symbol": "wMETA",
+        "address": "0x29b9c11784631638516056e29aa02173e1494829",
+        "equityToken": "0xc0D6457C16Cc70d6790Dd43521C899C87ce02f35"
+      },
+      "GOOGL": {
+        "name": "Alphabet Stonk Well",
+        "symbol": "wGOOGL",
+        "address": "0x506b4913bb052b1046931e722304a5a81df3bec4",
+        "equityToken": "0x2e0847E8910a9732eB3fb1bb4b70a580ADAD4FE3"
+      },
+      "SPY": {
+        "name": "SPDR S&P 500 Stonk Well",
+        "symbol": "wSPY",
+        "address": "0x65800bfeac09a6b97f7865729bc11a857ea0a0bc",
+        "equityToken": "0x117cc2133c37B721F49dE2A7a74833232B3B4C0C"
+      }
+    },
+    "positions": {
+      "TSLA": {
+        "address": "0x2ee232f2d5c0416eed7bab123265705a458bc53f"
+      },
+      "NVDA": {
+        "address": "0xa0e95cccd328c01deafed64a1811671846c632ef"
+      },
+      "AAPL": {
+        "address": "0x24713b7cec6c6addc9fa0a3bcc15962a6c4cc7c6"
+      },
+      "PLTR": {
+        "address": "0x3ea274a6394815d5a2a26f104369c455ded12981"
+      },
+      "META": {
+        "address": "0xd845e72c73e2babab6a9f7bd804216fba5b15dd3"
+      },
+      "GOOGL": {
+        "address": "0x9e6917267e4b844858ba131f003957ca12ab4823"
+      },
+      "SPY": {
+        "address": "0x795e894ad60b17c0236c77423e99cb60517739d8"
+      }
+    }
+  },
+  "deployedAt": "2026-10-07T12:45:44.569Z"
+}

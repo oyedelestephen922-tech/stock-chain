@@ -10,11 +10,13 @@ import Home from './pages/Home';
 const Markets = lazy(() => import('./pages/Markets'));
 const Trade = lazy(() => import('./pages/Trade'));
 const Vaults = lazy(() => import('./pages/Vaults'));
+const Borrow = lazy(() => import('./pages/Borrow'));
+const Options = lazy(() => import('./pages/Options'));
 const Docs = lazy(() => import('./pages/Docs'));
 const Legal = lazy(() => import('./pages/Legal'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
-const TITLES = { home: 'Markets, connected on-chain', markets: 'Markets', trade: 'Trade', vaults: 'Vaults', docs: 'Docs', terms: 'Terms', privacy: 'Privacy' };
+const TITLES = { home: 'Markets, connected on-chain', markets: 'Markets', trade: 'Trade', vaults: 'Vaults', borrow: 'Borrow Desk', options: 'Options Terminal', docs: 'Docs', terms: 'Terms', privacy: 'Privacy' };
 
 export default function App() {
   const route = useRoute();
@@ -36,6 +38,8 @@ export default function App() {
     case 'markets': page = <Markets />; break;
     case 'trade': page = <Trade symbol={route.param?.toUpperCase()} />; break;
     case 'vaults': page = <Vaults />; break;
+    case 'borrow': page = <Borrow />; break;
+    case 'options': page = <Options />; break;
     case 'docs': page = <Docs section={route.param} />; break;
     case 'terms': case 'privacy': page = <Legal kind={route.page} />; break;
     default: page = <NotFound />;

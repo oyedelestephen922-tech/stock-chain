@@ -7,9 +7,8 @@ import { alpaca, alpacaConfigured } from './providers/alpaca.js';
 import { yahoo } from './providers/yahoo.js';
 
 export const SYMBOLS = [
-  ['NVDA', 'NVIDIA'], ['AAPL', 'Apple'], ['TSLA', 'Tesla'], ['MSFT', 'Microsoft'],
-  ['AMZN', 'Amazon'], ['GOOGL', 'Alphabet'], ['META', 'Meta Platforms'],
-  ['AMD', 'Advanced Micro Devices'], ['SPY', 'S&P 500 ETF'], ['QQQ', 'Nasdaq-100 ETF'],
+  ['TSLA', 'Tesla'], ['NVDA', 'NVIDIA'], ['AAPL', 'Apple'], ['PLTR', 'Palantir'],
+  ['META', 'Meta Platforms'], ['GOOGL', 'Alphabet'], ['SPY', 'S&P 500 ETF'],
 ];
 
 const provider = () => (alpacaConfigured() ? alpaca : yahoo);

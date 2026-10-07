@@ -15,16 +15,13 @@ import { seeded } from '../utils/random';
 
 // Asset catalogue (names only). Demo prices below are arbitrary and NOT real quotes.
 const DEMO_ASSETS = [
-  ['NVDA', 'NVIDIA', 140, 'Semiconductors'],
-  ['AAPL', 'Apple', 210, 'Consumer tech'],
-  ['TSLA', 'Tesla', 250, 'Automotive'],
-  ['MSFT', 'Microsoft', 420, 'Software'],
-  ['AMZN', 'Amazon', 190, 'E-commerce'],
-  ['GOOGL', 'Alphabet', 170, 'Internet'],
-  ['META', 'Meta Platforms', 560, 'Internet'],
-  ['AMD', 'Advanced Micro Devices', 150, 'Semiconductors'],
-  ['SPY', 'S&P 500 ETF', 560, 'Index fund'],
-  ['QQQ', 'Nasdaq-100 ETF', 480, 'Index fund'],
+  ['TSLA', 'Tesla', 250, 'Automotive / Clean Tech'],
+  ['NVDA', 'NVIDIA', 140, 'Semiconductors / AI'],
+  ['AAPL', 'Apple', 210, 'Consumer Technology'],
+  ['PLTR', 'Palantir', 45, 'Enterprise AI'],
+  ['META', 'Meta Platforms', 560, 'Internet / AI'],
+  ['GOOGL', 'Alphabet', 170, 'Internet / Cloud'],
+  ['SPY', 'S&P 500 ETF', 560, 'Index Fund'],
 ];
 
 function demoSeries(symbol, base, points, vol) {
