@@ -1,7 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CONTRACTS } from '../config/contracts';
 import { useWallet } from '../hooks/useWallet';
 import { fmtNum, fmtUsd } from '../utils/format';
+import {
+  getBorrowData,
+  pledgeCollateral,
+  borrowUSDG,
+  repayUSDG,
+  withdrawCollateral,
+} from '../services/borrow';
 
 export function BorrowSection() {
   const wallet = useWallet();
@@ -9,15 +16,39 @@ export function BorrowSection() {
   const [amount, setAmount] = useState('');
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [txSuccess, setTxSuccess] = useState(null);
 
-  // Demo / local state for user collateral and borrow balance
-  const [pledgedShares, setPledgedShares] = useState(12.5); // wMETA shares
-  const [borrowedDebt, setBorrowedDebt] = useState(2400);   // USDG
-  const sharePriceUSD = 560; // wMETA share price estimate
-  const collateralValue = pledgedShares * sharePriceUSD;
+  // Live on-chain data with fallback
+  const [data, setData] = useState({
+    pledgedShares: 0,
+    currentDebt: 0,
+    collateralValue: 0,
+    maxBorrowLimit: 0,
+    sharePriceUSD: 560,
+    deskLiquidityUSDG: 0,
+  });
+
+  const refreshData = () => {
+    if (wallet.isConnected && wallet.provider && wallet.address) {
+      getBorrowData(wallet.provider, wallet.address)
+        .then((res) => {
+          if (res) setData(res);
+        })
+        .catch(console.error);
+    }
+  };
+
+  useEffect(() => {
+    refreshData();
+  }, [wallet.isConnected, wallet.provider, wallet.address]);
+
+  const pledgedShares = data.pledgedShares;
+  const borrowedDebt = data.currentDebt;
+  const sharePriceUSD = data.sharePriceUSD || 560;
+  const collateralValue = data.collateralValue || pledgedShares * sharePriceUSD;
   const maxBorrowLimit = collateralValue * 0.65; // 65% LTV
   const currentLtvPct = collateralValue > 0 ? (borrowedDebt / collateralValue) * 100 : 0;
-  const liquidationThresholdUSD = collateralValue * 0.80; // 80% Liquidation
+  const liquidationThresholdUSD = collateralValue * 0.8; // 80% Liquidation
 
   const handleSubmit = async () => {
     if (!wallet.isConnected) return wallet.connect();
@@ -25,34 +56,64 @@ export function BorrowSection() {
     if (!val || val <= 0) return setStatus('Enter a valid amount.');
 
     setLoading(true);
-    setStatus(null);
+    setStatus(`Preparing ${tab} transaction…`);
+    setTxSuccess(null);
     try {
       if (!CONTRACTS.creditLine) {
-        throw new Error('StonkCreditLine contract not connected yet. Run `npm run deploy:all`.');
+        throw new Error('StonkCreditLine contract not connected yet.');
       }
 
+      let res;
       if (tab === 'pledge') {
-        setPledgedShares((prev) => prev + val);
-        setStatus(`Successfully pledged ${val} wMETA collateral!`);
+        res = await pledgeCollateral({
+          shares: amount,
+          account: wallet.address,
+          provider: wallet.provider,
+          onStatus: (msg) => setStatus(msg),
+        });
+        setTxSuccess({ type: 'pledge', hash: res.hash, amount, unit: 'wMETA' });
       } else if (tab === 'borrow') {
+        if (data.deskLiquidityUSDG < val) {
+          throw new Error(
+            `Insufficient liquidity in borrow desk. Available: ${fmtUsd(data.deskLiquidityUSDG)} USDG.`
+          );
+        }
         if (borrowedDebt + val > maxBorrowLimit) {
           throw new Error('Borrow amount exceeds 65% max LTV limit.');
         }
-        setBorrowedDebt((prev) => prev + val);
-        setStatus(`Successfully borrowed ${val} USDG credit!`);
+        res = await borrowUSDG({
+          amount,
+          account: wallet.address,
+          provider: wallet.provider,
+          onStatus: (msg) => setStatus(msg),
+        });
+        setTxSuccess({ type: 'borrow', hash: res.hash, amount, unit: 'USDG' });
       } else if (tab === 'repay') {
-        setBorrowedDebt((prev) => Math.max(0, prev - val));
-        setStatus(`Successfully repaid ${val} USDG credit!`);
+        res = await repayUSDG({
+          amount,
+          account: wallet.address,
+          provider: wallet.provider,
+          onStatus: (msg) => setStatus(msg),
+        });
+        setTxSuccess({ type: 'repay', hash: res.hash, amount, unit: 'USDG' });
       } else if (tab === 'withdraw') {
         if (pledgedShares - val < 0) throw new Error('Insufficient pledged shares.');
         const remainingVal = (pledgedShares - val) * sharePriceUSD;
         if (borrowedDebt > remainingVal * 0.65) {
           throw new Error('Withdrawal would push your debt above the 65% LTV limit.');
         }
-        setPledgedShares((prev) => prev - val);
-        setStatus(`Successfully withdrew ${val} wMETA shares!`);
+        res = await withdrawCollateral({
+          shares: amount,
+          account: wallet.address,
+          provider: wallet.provider,
+          onStatus: (msg) => setStatus(msg),
+        });
+        setTxSuccess({ type: 'withdraw', hash: res.hash, amount, unit: 'wMETA' });
       }
+
+      setStatus(null);
       setAmount('');
+      refreshData();
     } catch (e) {
       setStatus(e.message);
     } finally {
@@ -106,10 +167,10 @@ export function BorrowSection() {
       {/* Action Desk Tabs */}
       <div className="vault-card" style={{ padding: '2rem' }}>
         <div className="seg seg-wide" role="group" aria-label="Desk action" style={{ marginBottom: '1.5rem' }}>
-          <button className={tab === 'pledge' ? 'is-on' : ''} onClick={() => setTab('pledge')}>Pledge Collateral</button>
-          <button className={tab === 'borrow' ? 'is-on' : ''} onClick={() => setTab('borrow')}>Borrow USDG</button>
-          <button className={tab === 'repay' ? 'is-on' : ''} onClick={() => setTab('repay')}>Repay Credit</button>
-          <button className={tab === 'withdraw' ? 'is-on' : ''} onClick={() => setTab('withdraw')}>Withdraw</button>
+          <button className={tab === 'pledge' ? 'is-on' : ''} onClick={() => { setTab('pledge'); setStatus(null); setTxSuccess(null); }}>Pledge Collateral</button>
+          <button className={tab === 'borrow' ? 'is-on' : ''} onClick={() => { setTab('borrow'); setStatus(null); setTxSuccess(null); }}>Borrow USDG</button>
+          <button className={tab === 'repay' ? 'is-on' : ''} onClick={() => { setTab('repay'); setStatus(null); setTxSuccess(null); }}>Repay Credit</button>
+          <button className={tab === 'withdraw' ? 'is-on' : ''} onClick={() => { setTab('withdraw'); setStatus(null); setTxSuccess(null); }}>Withdraw</button>
         </div>
 
         <label className="field">
@@ -127,7 +188,28 @@ export function BorrowSection() {
           </div>
         </label>
 
-        {status && <p className="field-err" role="alert" style={{ margin: '1rem 0' }}>{status}</p>}
+        {status && (
+          <p className={loading ? 'note' : 'field-err'} role="alert" style={{ margin: '1rem 0', color: loading ? 'var(--clr-gold)' : undefined }}>
+            {loading ? `⏳ ${status}` : status}
+          </p>
+        )}
+
+        {txSuccess && (
+          <div style={{ margin: '1rem 0', padding: '0.75rem', background: 'var(--surface-3)', borderRadius: '8px', wordBreak: 'break-all' }}>
+            <span style={{ color: 'var(--clr-up)', fontWeight: 'bold', display: 'block', marginBottom: '0.25rem' }}>
+              ✅ Successfully executed {txSuccess.type} of {txSuccess.amount} {txSuccess.unit}!
+            </span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--txt-dim)' }}>Tx: </span>
+            <a
+              href={`https://robinhoodchain.blockscout.com/tx/${txSuccess.hash}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: 'var(--clr-gold)', fontSize: '0.85rem', textDecoration: 'underline' }}
+            >
+              {txSuccess.hash} ↗
+            </a>
+          </div>
+        )}
 
         <button
           className="btn btn-gold btn-block btn-lg"
@@ -135,11 +217,19 @@ export function BorrowSection() {
           disabled={loading}
           onClick={handleSubmit}
         >
-          {loading ? 'Processing…' : !wallet.isConnected ? 'Connect Wallet' : `${tab.charAt(0).toUpperCase() + tab.slice(1)}`}
+          {loading ? (status || 'Processing in wallet…') : !wallet.isConnected ? 'Connect Wallet' : `${tab.charAt(0).toUpperCase() + tab.slice(1)}`}
         </button>
 
         <p className="note" style={{ textAlign: 'center', marginTop: '1rem' }}>
-          Isolated lending desk: Liquidations are isolated to this specific vault pool.
+          Isolated lending desk on Robinhood Chain: Collateral and debt are fully managed by verified smart contract{' '}
+          <a
+            href={`https://robinhoodchain.blockscout.com/address/${CONTRACTS.creditLine}`}
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: 'var(--clr-gold)' }}
+          >
+            {CONTRACTS.creditLine?.slice(0, 8)}…{CONTRACTS.creditLine?.slice(-6)}
+          </a>.
         </p>
       </div>
     </div>

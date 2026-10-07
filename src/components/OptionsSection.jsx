@@ -3,6 +3,7 @@ import { CONTRACTS } from '../config/contracts';
 import { CANONICAL_TOKENS, EQUITIES_LIST } from '../config/tokens';
 import { useWallet } from '../hooks/useWallet';
 import { fmtNum, fmtUsd } from '../utils/format';
+import { writeOption, fillOption, DESTOCKS_MARKETS } from '../services/options';
 
 export function OptionsSection() {
   const wallet = useWallet();
@@ -14,6 +15,7 @@ export function OptionsSection() {
   const [askPremium, setAskPremium] = useState('4.50');
   const [status, setStatus] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [txSuccess, setTxSuccess] = useState(null);
 
   const equity = CANONICAL_TOKENS[selectedSymbol] || CANONICAL_TOKENS.NVDA;
   const spotPrice = selectedSymbol === 'NVDA' ? 140 : selectedSymbol === 'TSLA' ? 250 : selectedSymbol === 'AAPL' ? 210 : selectedSymbol === 'META' ? 560 : 180;
@@ -26,6 +28,7 @@ export function OptionsSection() {
   const nextFriday = new Date();
   nextFriday.setDate(nextFriday.getDate() + ((7 - nextFriday.getDay() + 5) % 7 || 7));
   nextFriday.setUTCHours(20, 0, 0, 0);
+  const expiryTimestamp = Math.floor(nextFriday.getTime() / 1000);
   const expiryStr = nextFriday.toUTCString().replace(':00 GMT', ' UTC');
 
   const requiredCollateral = optionType === 'call'
@@ -40,28 +43,55 @@ export function OptionsSection() {
 
     setLoading(true);
     setStatus(null);
+    setTxSuccess(null);
     try {
       if (!CONTRACTS.destocks) {
         throw new Error('DeStocks options contract not connected.');
       }
 
       if (mode === 'write') {
-        setStatus(`Submitting ${optionType.toUpperCase()} offer (${requiredCollateral} collateral)...`);
-        // On-chain write() interaction via DeStocks contract
-        setTimeout(() => {
-          setStatus(`✅ Successfully created ${optionType.toUpperCase()} offer at $${strikePrice} strike! Locked ${requiredCollateral}.`);
-          setLoading(false);
-        }, 1200);
+        const res = await writeOption({
+          symbol: selectedSymbol,
+          isCall: optionType === 'call',
+          strikePriceUSD: strikePrice,
+          expiryTimestamp,
+          size,
+          askPremiumUSD: askPremium,
+          account: wallet.address,
+          provider: wallet.provider,
+          onStatus: (msg) => setStatus(msg),
+        });
+        setTxSuccess({
+          type: 'write',
+          hash: res.hash,
+          symbol: selectedSymbol,
+          strike: strikePrice,
+          size,
+          optionType,
+        });
+        setStatus(null);
       } else {
-        setStatus(`Purchasing long ${optionType.toUpperCase()} contract for ${fmtUsd(totalPremiumUSDG)} USDG...`);
-        // On-chain fill() interaction via DeStocks contract
-        setTimeout(() => {
-          setStatus(`✅ Successfully purchased ${size} long ${optionType.toUpperCase()} contracts (ERC-1155)!`);
-          setLoading(false);
-        }, 1200);
+        // Buy / Fill option
+        const res = await fillOption({
+          offerId: 1, // Default offer ID
+          fillSize: size,
+          premiumPerUnitUSD: askPremium,
+          account: wallet.address,
+          provider: wallet.provider,
+          onStatus: (msg) => setStatus(msg),
+        });
+        setTxSuccess({
+          type: 'fill',
+          hash: res.hash,
+          symbol: selectedSymbol,
+          size,
+          optionType,
+        });
+        setStatus(null);
       }
     } catch (e) {
       setStatus(e.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -95,10 +125,10 @@ export function OptionsSection() {
         <div className="vault-card" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {/* Write / Buy Toggle */}
           <div className="seg seg-wide" role="group" aria-label="Action Mode">
-            <button className={mode === 'write' ? 'is-on' : ''} onClick={() => setMode('write')}>
+            <button className={mode === 'write' ? 'is-on' : ''} onClick={() => { setMode('write'); setStatus(null); setTxSuccess(null); }}>
               Write ({optionType === 'call' ? 'Covered Call' : 'Cash-Secured Put'})
             </button>
-            <button className={mode === 'buy' ? 'is-on' : ''} onClick={() => setMode('buy')}>
+            <button className={mode === 'buy' ? 'is-on' : ''} onClick={() => { setMode('buy'); setStatus(null); setTxSuccess(null); }}>
               Buy Long Contract
             </button>
           </div>
@@ -108,7 +138,7 @@ export function OptionsSection() {
             <label className="field">
               <span className="field-label">Underlier</span>
               <select value={selectedSymbol} onChange={(e) => setSelectedSymbol(e.target.value)}>
-                {EQUITIES_LIST.map((eq) => (
+                {EQUITIES_LIST.filter((eq) => DESTOCKS_MARKETS[eq.symbol]).map((eq) => (
                   <option key={eq.symbol} value={eq.symbol}>{eq.symbol} ({eq.name})</option>
                 ))}
               </select>
@@ -142,7 +172,7 @@ export function OptionsSection() {
             </div>
           </div>
 
-          {/* Size & Premium Input */}
+          {/* Size & Ask Premium */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <label className="field">
               <span className="field-label">Contracts Size</span>
@@ -171,15 +201,36 @@ export function OptionsSection() {
             </label>
           </div>
 
-          {/* Action CTA */}
-          {status && <p className="field-err" role="alert">{status}</p>}
+          {/* Action Status and Success */}
+          {status && (
+            <p className={loading ? 'note' : 'field-err'} role="alert" style={{ color: loading ? 'var(--clr-gold)' : undefined }}>
+              {loading ? `⏳ ${status}` : status}
+            </p>
+          )}
+
+          {txSuccess && (
+            <div style={{ margin: '0.5rem 0', padding: '0.75rem', background: 'var(--surface-3)', borderRadius: '8px', wordBreak: 'break-all' }}>
+              <span style={{ color: 'var(--clr-up)', fontWeight: 'bold', display: 'block', marginBottom: '0.25rem' }}>
+                ✅ Successfully broadcasted {txSuccess.type === 'write' ? 'Write Option offer' : 'Buy Option fill'}!
+              </span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--txt-dim)' }}>Tx: </span>
+              <a
+                href={`https://robinhoodchain.blockscout.com/tx/${txSuccess.hash}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: 'var(--clr-gold)', fontSize: '0.85rem', textDecoration: 'underline' }}
+              >
+                {txSuccess.hash} ↗
+              </a>
+            </div>
+          )}
 
           <button
             className="btn btn-gold btn-block btn-lg"
             disabled={loading}
             onClick={handleAction}
           >
-            {loading ? 'Confirming in wallet…' : !wallet.isConnected ? 'Connect Wallet' : mode === 'write' ? `Write ${optionType.toUpperCase()} (Lock ${requiredCollateral})` : `Buy Long ${optionType.toUpperCase()} (${fmtUsd(totalPremiumUSDG)})`}
+            {loading ? (status || 'Confirming in wallet…') : !wallet.isConnected ? 'Connect Wallet' : mode === 'write' ? `Write ${optionType.toUpperCase()} (Lock ${requiredCollateral})` : `Buy Long ${optionType.toUpperCase()} (${fmtUsd(totalPremiumUSDG)})`}
           </button>
         </div>
 

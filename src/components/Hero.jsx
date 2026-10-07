@@ -28,9 +28,47 @@ export function Hero({ reduced }) {
               ? <a href="#/trade" className="btn btn-ghost btn-lg">Open terminal</a>
               : <button className="btn btn-ghost btn-lg" onClick={() => wallet.connect()}>Connect wallet</button>}
           </div>
+
+          <div
+            className="hero-contract-space"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              marginTop: '1.25rem',
+              padding: '0.5rem 0.9rem',
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid var(--line, rgba(255, 255, 255, 0.08))',
+              borderRadius: '999px',
+              fontSize: '0.85rem',
+              backdropFilter: 'blur(8px)',
+              width: 'fit-content',
+            }}
+          >
+            <span style={{ color: 'var(--txt-dim, #888)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: '#F59E0B' }} />
+              Contract Address:
+            </span>
+            <span
+              style={{
+                background: 'rgba(245, 158, 11, 0.12)',
+                color: 'var(--clr-gold, #f59e0b)',
+                fontWeight: 600,
+                padding: '0.15rem 0.6rem',
+                borderRadius: '999px',
+                letterSpacing: '0.02em',
+                fontSize: '0.8rem',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+              }}
+            >
+              Coming Soon
+            </span>
+          </div>
+
           <dl className="hero-net">
             <div><dt>Network</dt><dd>{NETWORK.name}</dd></div>
             <div><dt>Chain ID</dt><dd>{NETWORK.chainId}</dd></div>
+            <div><dt>Contract</dt><dd style={{ color: 'var(--clr-gold, #f59e0b)' }}>Coming Soon</dd></div>
             <div><dt>Latest block</dt><dd className="tabular">{net.data ? net.data.blockNumber.toLocaleString() : '--'}</dd></div>
           </dl>
         </div>

@@ -19,6 +19,8 @@ export function TradePanel({ markets = [], symbol, onSymbol, demo }) {
   const [preview, setPreview] = useState(false);
   const [txError, setTxError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [statusText, setStatusText] = useState('');
+  const [txSuccess, setTxSuccess] = useState(null);
 
   const market = markets.find((m) => m.symbol === symbol);
   const slip = custom ? Math.min(50, Math.max(0.01, Number(custom) || 0)) : slippage;
@@ -27,21 +29,44 @@ export function TradePanel({ markets = [], symbol, onSymbol, demo }) {
     [side, amount, market, slip, net.data]
   );
 
-  useEffect(() => { setAmount(''); setTxError(null); }, [symbol, side]);
+  useEffect(() => { setAmount(''); setTxError(null); setTxSuccess(null); }, [symbol, side]);
 
   const amountUnit = side === 'buy' ? 'USD' : symbol;
   const receiveUnit = side === 'buy' ? symbol : 'USD';
   const invalid = amount !== '' && !(Number(amount) > 0);
 
-  let cta = { label: side === 'buy' ? `Buy ${symbol}` : `Sell ${symbol}`, action: () => { setTxError(null); setPreview(true); }, disabled: !quote || invalid };
+  let cta = { label: side === 'buy' ? `Buy ${symbol}` : `Sell ${symbol}`, action: () => { setTxError(null); setTxSuccess(null); setPreview(true); }, disabled: !quote || invalid };
   if (!wallet.isConnected) cta = { label: 'Connect wallet', action: () => wallet.connect(), disabled: false };
   else if (wallet.wrongNetwork) cta = { label: `Switch to ${NETWORK.name}`, action: wallet.switchNetwork, disabled: false };
 
   const confirm = async () => {
-    setSubmitting(true); setTxError(null);
-    try { await executeTrade({ side, symbol, amount, minReceive: quote.minReceive, account: wallet.address, provider: wallet.provider }); }
-    catch (e) { setTxError(e.message); }
-    finally { setSubmitting(false); }
+    setSubmitting(true);
+    setTxError(null);
+    setStatusText('Preparing transaction…');
+    try {
+      const res = await executeTrade({
+        side,
+        symbol,
+        amount,
+        minReceive: quote.minReceive,
+        account: wallet.address,
+        provider: wallet.provider,
+        onStatus: (msg) => setStatusText(msg),
+      });
+      setTxSuccess({
+        hash: res.hash,
+        side,
+        amount,
+        symbol,
+        receive: quote.receive,
+      });
+      setAmount('');
+    } catch (e) {
+      setTxError(e.message);
+    } finally {
+      setSubmitting(false);
+      setStatusText('');
+    }
   };
 
   return (
@@ -91,24 +116,50 @@ export function TradePanel({ markets = [], symbol, onSymbol, demo }) {
       <button className={`btn btn-gold btn-block btn-lg ${side === 'sell' && wallet.isConnected && !wallet.wrongNetwork ? 'btn-sell' : ''}`} onClick={cta.action} disabled={cta.disabled}>{cta.label}</button>
       {!hasTradingContracts && <p className="note">Trading contracts are not deployed yet. You can preview a trade, but nothing will be submitted.</p>}
 
-      {preview && quote && (
-        <div className="modal-scrim" onClick={() => setPreview(false)}>
+      {preview && (
+        <div className="modal-scrim" onClick={() => !submitting && setPreview(false)}>
           <div className="modal" role="dialog" aria-modal="true" aria-labelledby="preview-title" onClick={(e) => e.stopPropagation()}>
-            <h2 id="preview-title">Review {side === 'buy' ? 'purchase' : 'sale'}</h2>
-            <div className="quote">
-              <div><span>You pay</span><strong className="tabular">{fmtNum(Number(amount), 6)} {amountUnit}</strong></div>
-              <div><span>You receive (est.)</span><strong className="tabular">{fmtNum(quote.receive, 6)} {receiveUnit}</strong></div>
-              <div><span>Minimum received</span><span className="tabular">{fmtNum(quote.minReceive, 6)} {receiveUnit}</span></div>
-              <div><span>Execution price (est.)</span><span className="tabular">{fmtUsd(quote.execPrice)}</span></div>
-              <div><span>Slippage tolerance</span><span>{slip}%</span></div>
-              <div><span>Network</span><span>{NETWORK.name}</span></div>
-            </div>
-            {demo && <p className="note">This quote uses demo prices. It is not an executable price.</p>}
-            {txError && <p className="field-err" role="alert">{txError}</p>}
-            <button className="btn btn-gold btn-block btn-lg" onClick={confirm} disabled={submitting || !hasTradingContracts}>
-              {submitting ? 'Confirm in your wallet…' : hasTradingContracts ? 'Confirm trade' : 'Confirm trade (contracts not connected)'}
-            </button>
-            <button className="btn btn-quiet btn-block" onClick={() => setPreview(false)}>Back</button>
+            {txSuccess ? (
+              <>
+                <h2 id="preview-title" style={{ color: 'var(--clr-up)' }}>✅ Trade Executed!</h2>
+                <p style={{ margin: '0.75rem 0', fontSize: '0.95rem' }}>
+                  Successfully executed swap of <strong>{fmtNum(Number(txSuccess.amount), 4)} {txSuccess.side === 'buy' ? 'USDG' : txSuccess.symbol}</strong> for estimated <strong>{fmtNum(txSuccess.receive, 4)} {txSuccess.side === 'buy' ? txSuccess.symbol : 'USDG'}</strong> on Robinhood Chain.
+                </p>
+                <div style={{ margin: '1rem 0', padding: '0.75rem', background: 'var(--surface-3)', borderRadius: '8px', wordBreak: 'break-all' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--txt-dim)', display: 'block', marginBottom: '0.25rem' }}>Transaction Hash:</span>
+                  <a
+                    href={`https://robinhoodchain.blockscout.com/tx/${txSuccess.hash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: 'var(--clr-gold)', fontSize: '0.85rem', textDecoration: 'underline' }}
+                  >
+                    {txSuccess.hash} ↗
+                  </a>
+                </div>
+                <button className="btn btn-gold btn-block btn-lg" onClick={() => { setPreview(false); setTxSuccess(null); }}>
+                  Close
+                </button>
+              </>
+            ) : quote ? (
+              <>
+                <h2 id="preview-title">Review {side === 'buy' ? 'purchase' : 'sale'}</h2>
+                <div className="quote">
+                  <div><span>You pay</span><strong className="tabular">{fmtNum(Number(amount), 6)} {amountUnit}</strong></div>
+                  <div><span>You receive (est.)</span><strong className="tabular">{fmtNum(quote.receive, 6)} {receiveUnit}</strong></div>
+                  <div><span>Minimum received</span><span className="tabular">{fmtNum(quote.minReceive, 6)} {receiveUnit}</span></div>
+                  <div><span>Execution price (est.)</span><span className="tabular">{fmtUsd(quote.execPrice)}</span></div>
+                  <div><span>Slippage tolerance</span><span>{slip}%</span></div>
+                  <div><span>Network</span><span>{NETWORK.name}</span></div>
+                </div>
+                {demo && <p className="note">This quote uses demo prices. It is not an executable price.</p>}
+                {statusText && <p className="note" style={{ color: 'var(--clr-gold)', fontWeight: 500 }}>⏳ {statusText}</p>}
+                {txError && <p className="field-err" role="alert">{txError}</p>}
+                <button className="btn btn-gold btn-block btn-lg" onClick={confirm} disabled={submitting || !hasTradingContracts}>
+                  {submitting ? (statusText || 'Confirm in your wallet…') : hasTradingContracts ? 'Confirm trade' : 'Confirm trade (contracts not connected)'}
+                </button>
+                <button className="btn btn-quiet btn-block" disabled={submitting} onClick={() => setPreview(false)}>Back</button>
+              </>
+            ) : null}
           </div>
         </div>
       )}
