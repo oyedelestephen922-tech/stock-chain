@@ -17,6 +17,13 @@ export const CANONICAL_TOKENS = {
     address: "0x0Bd7D308f8E1639FAb988df18A8011f41EAcAD73",
     decimals: 18,
   },
+  CHAIN: {
+    symbol: "CHAIN",
+    name: "StockChain",
+    address: "0xa536b11f478d6588158481b1cb0e1b66b3c627f8",
+    decimals: 18,
+    color: "#f59e0b",
+  },
   NVDA: {
     symbol: "NVDA",
     name: "NVIDIA",
