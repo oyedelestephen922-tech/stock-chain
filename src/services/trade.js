@@ -61,9 +61,9 @@ export async function executeTrade({ side, symbol, amount, minReceive, account, 
   });
   const currentAllowance = BigInt(allowanceHex || '0x0');
 
-  // 2. Request Approval if needed
+  // 2. Request Approval if needed (exact amount to avoid wallet security warning)
   if (currentAllowance < amountInRaw) {
-    const approveData = `${ERC20_SELECTORS.approve}${padAddress(CONTRACTS.router)}${padUint256(2n ** 256n - 1n)}`;
+    const approveData = `${ERC20_SELECTORS.approve}${padAddress(CONTRACTS.router)}${padUint256(amountInRaw)}`;
     const approveTx = await provider.request({
       method: 'eth_sendTransaction',
       params: [{ from: account, to: tokenIn, data: approveData }],
