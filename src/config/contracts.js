@@ -57,7 +57,6 @@ export const WELLS = {
 };
 
 export const CONTRACT_LIST = [
-  { key: 'token', label: 'StockChain ($CHAIN)', address: CONTRACTS.token },
   { key: 'router', label: 'GetStock Router', address: CONTRACTS.router },
   { key: 'destocks', label: 'DeStocks Options', address: CONTRACTS.destocks },
   { key: 'creditLine', label: 'Borrow Desk', address: CONTRACTS.creditLine },
